@@ -3,6 +3,7 @@ import BehaviorShortNames from "./behavior-short-names.json";
 
 interface KeyProps {
   selected?: boolean;
+  muted?: boolean;
   width: number;
   height: number;
   oneU: number;
@@ -36,6 +37,7 @@ const shortenHeader = (header: string | undefined) => {
 
 export const Key = ({
   selected = false,
+  muted = false,
   width,
   height,
   oneU,
@@ -56,8 +58,8 @@ export const Key = ({
       }}
       onClick={onClick}
     >
-      <div className={`absolute text-xs ${selected ? "text-primary-content" : "z1text-base-content"} opacity-80 top-1 text-nowrap left-1/2 font-light -translate-x-1/2 text-center`}>{shortenHeader(header)}</div>
-      {children}
+      <div className={`absolute text-xs ${selected ? "text-primary-content" : "z1text-base-content"} ${muted ? "opacity-50" : "opacity-80"} top-1 text-nowrap left-1/2 font-light -translate-x-1/2 text-center`}>{shortenHeader(header)}</div>
+      {muted ? <span className="opacity-50">{children}</span> : children}
     </button>
   );
 };

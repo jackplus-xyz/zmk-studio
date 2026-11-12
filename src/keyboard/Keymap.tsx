@@ -48,11 +48,25 @@ export const Keymap = ({
       };
     }
 
+    let binding = keymap.layers[selectedLayerIndex].bindings[i];
+    const muted =
+      selectedLayerIndex > 0 &&
+      behaviors[binding.behaviorId]?.displayName === "Transparent";
+
+    // Preview fall-through without changing the binding edited on this layer.
+    if (muted) {
+      for (let layerIndex = selectedLayerIndex - 1; layerIndex >= 0; layerIndex--) {
+        const inheritedBinding = keymap.layers[layerIndex].bindings[i];
+        if (!inheritedBinding) continue;
+        binding = inheritedBinding;
+        if (behaviors[binding.behaviorId]?.displayName !== "Transparent") break;
+      }
+    }
+
     return {
       id: `${keymap.layers[selectedLayerIndex].id}-${i}`,
-      header:
-        behaviors[keymap.layers[selectedLayerIndex].bindings[i].behaviorId]
-          ?.displayName || "Unknown",
+      header: behaviors[binding.behaviorId]?.displayName || "Unknown",
+      muted,
       x: k.x / 100.0,
       y: k.y / 100.0,
       width: k.width / 100,
@@ -61,9 +75,7 @@ export const Keymap = ({
       rx: (k.rx || 0) / 100.0,
       ry: (k.ry || 0) / 100.0,
       children: (
-        <HidUsageLabel
-          hid_usage={keymap.layers[selectedLayerIndex].bindings[i].param1}
-        />
+        <HidUsageLabel hid_usage={binding.param1} />
       ),
     };
   });
