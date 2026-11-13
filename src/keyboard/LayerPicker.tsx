@@ -2,7 +2,6 @@ import { Pencil, Minus, Plus } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import {
   DropIndicator,
-  Label,
   ListBox,
   ListBoxItem,
   Selection,
@@ -32,7 +31,7 @@ interface LayerPickerProps {
   onLayerNameChanged?: (
     id: number,
     oldName: string,
-    newName: string
+    newName: string,
   ) => void | Promise<void>;
 }
 
@@ -53,7 +52,7 @@ const EditLabelModal = ({
   handleSaveNewLabel: (
     id: number,
     oldName: string,
-    newName: string | null
+    newName: string | null,
   ) => void;
 }) => {
   const ref = useModalRef(open);
@@ -115,12 +114,12 @@ export const LayerPicker = ({
   ...props
 }: LayerPickerProps) => {
   const [editLabelData, setEditLabelData] = useState<EditLabelData | null>(
-    null
+    null,
   );
 
   const layer_items = useMemo(() => {
     return layers.map((l, i) => ({
-      name: l.name || i.toLocaleString(),
+      name: l.name || "Layer",
       id: l.id,
       index: i,
       selected: i === selectedLayerIndex,
@@ -135,7 +134,7 @@ export const LayerPicker = ({
 
       onLayerClicked?.(layer_items.findIndex((l) => s.has(l.id)));
     },
-    [onLayerClicked, layer_items]
+    [onLayerClicked, layer_items],
   );
 
   let { dragAndDropHooks } = useDragAndDrop({
@@ -162,17 +161,17 @@ export const LayerPicker = ({
         onLayerNameChanged?.(id, oldName, newName);
       }
     },
-    [onLayerNameChanged]
+    [onLayerNameChanged],
   );
 
   return (
-    <div className="flex flex-col min-w-40">
-      <div className="grid grid-cols-[1fr_auto_auto] items-center">
-        <Label className="after:content-[':'] text-sm">Layers</Label>
+    <div className="flex items-stretch gap-1 min-w-0">
+      <div className="order-last flex items-center gap-1 shrink-0 px-1">
         {onRemoveClicked && (
           <button
             type="button"
-            className="hover:text-primary-content hover:bg-primary rounded-sm"
+            aria-label="Remove selected layer"
+            className="text-gray-800 hover:bg-base-300 rounded-sm disabled:opacity-50"
             disabled={!canRemove}
             onClick={onRemoveClicked}
           >
@@ -182,8 +181,9 @@ export const LayerPicker = ({
         {onAddClicked && (
           <button
             type="button"
+            aria-label="Add layer"
             disabled={!canAdd}
-            className="hover:text-primary-content ml-1 hover:bg-primary rounded-sm disabled:text-gray-500 disabled:hover:bg-base-300 disabled:cursor-not-allowed"
+            className="text-gray-800 ml-1 hover:bg-base-300 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={onAddClicked}
           >
             <Plus className="size-4" />
@@ -200,6 +200,7 @@ export const LayerPicker = ({
       )}
       <ListBox
         aria-label="Keymap Layer"
+        orientation="horizontal"
         selectionMode="single"
         items={layer_items}
         disallowEmptySelection={true}
@@ -208,17 +209,22 @@ export const LayerPicker = ({
             ? [layer_items[selectedLayerIndex].id]
             : []
         }
-        className="ml-2 items-center justify-center cursor-pointer"
+        className="flex flex-1 min-w-0 items-stretch gap-1 overflow-x-auto cursor-pointer"
         onSelectionChange={selectionChanged}
         dragAndDropHooks={dragAndDropHooks}
         {...props}
       >
         {(layer_item) => (
           <ListBoxItem
-            textValue={layer_item.name}
-            className="p-1 b-1 my-1 group grid grid-cols-[1fr_auto] items-center aria-selected:bg-primary aria-selected:text-primary-content border rounded border-transparent border-solid hover:bg-base-300"
+            textValue={`${layer_item.index} ${layer_item.name}`}
+            className="group font-mono flex shrink-0 min-w-[8rem] items-center justify-center gap-1 px-4 py-3 bg-[#f6f6f6] text-gray-800 aria-selected:bg-white aria-selected:font-semibold outline-offset-[-2px]"
           >
-            <span>{layer_item.name}</span>
+            <span className="whitespace-nowrap">
+              <span className="font-semibold">{layer_item.index}</span>{" "}
+              <span className="inline-block max-w-[14rem] truncate align-bottom">
+                {layer_item.name}
+              </span>
+            </span>
             <Pencil
               className="h-4 w-4 mx-1 invisible group-hover:visible"
               onClick={() =>

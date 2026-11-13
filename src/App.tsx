@@ -171,6 +171,7 @@ function App() {
   const [connectedDeviceName, setConnectedDeviceName] = useState<
     string | undefined
   >(undefined);
+  const [layoutPickerHost, setLayoutPickerHost] = useState<HTMLDivElement | null>(null);
   const [doIt, undo, redo, canUndo, canRedo, reset] = useUndoRedo();
   const [showAbout, setShowAbout] = useState(false);
   const [showLicenseNotice, setShowLicenseNotice] = useState(false);
@@ -332,6 +333,7 @@ function App() {
           <div className="bg-base-100 text-base-content h-full max-h-[100vh] w-full max-w-[100vw] inline-grid grid-cols-[auto] grid-rows-[auto_1fr_auto] overflow-hidden">
             <AppHeader
               connectedDeviceLabel={connectedDeviceName}
+              layoutControlsRef={setLayoutPickerHost}
               canUndo={canUndo}
               canRedo={canRedo}
               onUndo={undo}
@@ -341,7 +343,7 @@ function App() {
               onDisconnect={disconnect}
               onResetSettings={resetSettings}
             />
-            <Keyboard />
+            <Keyboard layoutPickerHost={layoutPickerHost} />
             <AppFooter
               onShowAbout={() => setShowAbout(true)}
               onShowLicenseNotice={() => setShowLicenseNotice(true)}

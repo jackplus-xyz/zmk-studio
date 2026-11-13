@@ -53,13 +53,13 @@ export const Key = ({
 
   return (
     <button
-      className={`group font-mono rounded relative flex justify-center items-center cursor-pointer transition-all hover:shadow-xl hover:ring-1 hover:ring-gray-300 hover:scale-125 ${
+      className={`group font-mono border rounded relative flex justify-center items-center cursor-pointer transition-all hover:shadow-xl hover:ring-1 hover:ring-gray-300 hover:scale-110 ${
         selected
-          ? "bg-primary text-primary-content"
+          ? "bg-primary text-primary-content border-primary"
           : active
-            ? "bg-gray-800 text-gray-100"
-            : "bg-base-100 text-base-content"
-      } ${active ? `ring-2 ${selected ? "ring-primary" : "ring-gray-500"} shadow-inner translate-y-px` : ""}`}
+            ? "bg-gray-300 text-gray-800 border-gray-300"
+            : "bg-white text-gray-800 border-gray-300"
+      } ${active ? "shadow-inner translate-y-px" : ""}`}
       style={{
         width: `${pixelWidth}px`,
         height: `${pixelHeight}px`,

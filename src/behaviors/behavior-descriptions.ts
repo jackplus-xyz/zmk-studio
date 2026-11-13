@@ -131,10 +131,6 @@ export const behaviorDescriptions: Record<string, BehaviorDescription> = {
     text: "Allows ZMK Studio to change the keyboard’s configuration until it locks again after inactivity or disconnection.",
     url: "https://zmk.dev/docs/keymaps/behaviors/studio-unlock",
   },
-  Bluetooth: {
-    text: "Manages Bluetooth profiles and pairings. Profile numbers start at 0. Clearing a profile removes its saved pairing.",
-    url: "https://zmk.dev/docs/keymaps/behaviors/bluetooth",
-  },
 };
 
 const normalizeName = (name: string) =>
@@ -167,6 +163,7 @@ export function getBehaviorDescription(
   const name = normalizeName(displayName);
   if (
     getLightingKind(displayName) ||
+    name === "bluetooth" ||
     [
       "keypress",
       "modtap",

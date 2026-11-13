@@ -7,7 +7,7 @@ import {
 } from "react-aria-components";
 import { useConnectedDeviceData } from "./rpc/useConnectedDeviceData";
 import { useSub } from "./usePubSub";
-import { useContext, useEffect, useState } from "react";
+import { type Ref, useContext, useEffect, useState } from "react";
 import { useModalRef } from "./misc/useModalRef";
 import { LockStateContext } from "./rpc/LockStateContext";
 import { LockState } from "@zmkfirmware/zmk-studio-ts-client/core";
@@ -18,6 +18,7 @@ import { GenericModal } from "./GenericModal";
 
 export interface AppHeaderProps {
   connectedDeviceLabel?: string;
+  layoutControlsRef?: Ref<HTMLDivElement>;
   onSave?: () => void | Promise<void>;
   onDiscard?: () => void | Promise<void>;
   onUndo?: () => Promise<void>;
@@ -30,6 +31,7 @@ export interface AppHeaderProps {
 
 export const AppHeader = ({
   connectedDeviceLabel,
+  layoutControlsRef,
   canRedo,
   canUndo,
   onRedo,
@@ -57,11 +59,11 @@ export const AppHeader = ({
   const showSettingsRef = useModalRef(showSettingsReset);
   const [unsaved, setUnsaved] = useConnectedDeviceData<boolean>(
     { keymap: { checkUnsavedChanges: true } },
-    (r) => r.keymap?.checkUnsavedChanges
+    (r) => r.keymap?.checkUnsavedChanges,
   );
 
   useSub("rpc_notification.keymap.unsavedChangesStatusChanged", (unsaved) =>
-    setUnsaved(unsaved)
+    setUnsaved(unsaved),
   );
 
   return (
@@ -97,31 +99,34 @@ export const AppHeader = ({
           </div>
         </div>
       </GenericModal>
-      <MenuTrigger>
-        <Button
-          className="text-center rac-disabled:opacity-0 hover:bg-base-300 transition-all duration-100 p-1 pl-2 rounded-lg"
-          isDisabled={!connectedDeviceLabel}
-        >
-          {connectedDeviceLabel}
-          <ChevronDown className="inline-block w-4" />
-        </Button>
-        <Popover>
-          <Menu className="shadow-md rounded bg-base-100 text-base-content cursor-pointer overflow-hidden">
-            <MenuItem
-              className="px-2 py-1 hover:bg-base-200"
-              onAction={onDisconnect}
-            >
-              Disconnect
-            </MenuItem>
-            <MenuItem
-              className="px-2 py-1 hover:bg-base-200"
-              onAction={() => setShowSettingsReset(true)}
-            >
-              Restore Stock Settings
-            </MenuItem>
-          </Menu>
-        </Popover>
-      </MenuTrigger>
+      <div className="flex items-center justify-center gap-3 min-w-0">
+        <MenuTrigger>
+          <Button
+            className="text-center rac-disabled:opacity-0 hover:bg-base-300 transition-all duration-100 p-1 pl-2 rounded-lg"
+            isDisabled={!connectedDeviceLabel}
+          >
+            {connectedDeviceLabel}
+            <ChevronDown className="inline-block w-4" />
+          </Button>
+          <Popover>
+            <Menu className="shadow-md rounded bg-base-100 text-base-content cursor-pointer overflow-hidden">
+              <MenuItem
+                className="px-2 py-1 hover:bg-base-200"
+                onAction={onDisconnect}
+              >
+                Disconnect
+              </MenuItem>
+              <MenuItem
+                className="px-2 py-1 hover:bg-base-200"
+                onAction={() => setShowSettingsReset(true)}
+              >
+                Restore Stock Settings
+              </MenuItem>
+            </Menu>
+          </Popover>
+        </MenuTrigger>
+        <div ref={layoutControlsRef} />
+      </div>
       <div className="flex justify-end gap-1 px-2">
         {onUndo && (
           <Tooltip label="Undo">

@@ -32,6 +32,7 @@ import { LockState } from "@zmkfirmware/zmk-studio-ts-client/core";
 import { deserializeLayoutZoom, LayoutZoom } from "./PhysicalLayout";
 import { useLocalStorageState } from "../misc/useLocalStorageState";
 import { getCompactSplitLayout } from "./compact-split-layout";
+import { createPortal } from "react-dom";
 
 type BehaviorMap = Record<number, GetBehaviorDetailsResponse>;
 
@@ -159,7 +160,7 @@ function useLayouts(): [
   ];
 }
 
-export default function Keyboard() {
+export default function Keyboard({ layoutPickerHost }: { layoutPickerHost?: HTMLElement | null }) {
   const [
     layouts,
     _setLayouts,
@@ -505,20 +506,19 @@ export default function Keyboard() {
   }, [keymap, selectedLayerIndex]);
 
   return (
-    <div className="grid grid-cols-[auto_1fr] grid-rows-[1fr_minmax(10em,auto)] bg-base-300 max-w-full min-w-0 min-h-0">
-      <div className="p-2 flex flex-col gap-2 bg-base-200 row-span-2">
-        {layouts && (
-          <div className="col-start-3 row-start-1 row-end-2">
-            <PhysicalLayoutPicker
-              layouts={layouts}
-              selectedPhysicalLayoutIndex={selectedPhysicalLayoutIndex}
-              onPhysicalLayoutClicked={doSelectPhysicalLayout}
-            />
-          </div>
-        )}
-
+    <>
+      {layouts && layoutPickerHost && createPortal(
+        <PhysicalLayoutPicker
+          layouts={layouts}
+          selectedPhysicalLayoutIndex={selectedPhysicalLayoutIndex}
+          onPhysicalLayoutClicked={doSelectPhysicalLayout}
+        />,
+        layoutPickerHost,
+      )}
+    <div className="grid grid-cols-1 grid-rows-[auto_minmax(0,1fr)_auto] bg-white text-gray-800 max-w-full min-w-0 min-h-0">
+      <div className="pt-2 px-2 flex items-end bg-[#ededed] min-w-0">
         {keymap && (
-          <div className="col-start-1 row-start-1 row-end-2">
+          <div className="flex-1 min-w-0">
             <LayerPicker
               layers={keymap.layers}
               selectedLayerIndex={selectedLayerIndex}
@@ -534,7 +534,7 @@ export default function Keyboard() {
         )}
       </div>
       {layouts && keymap && behaviors && (
-        <div className="p-2 col-start-2 row-start-1 grid items-center justify-center relative min-w-0">
+        <div className="p-2 row-start-2 grid items-center justify-center relative min-w-0 min-h-0">
           <KeymapComp
             keymap={keymap}
             layout={layouts[selectedPhysicalLayoutIndex]}
@@ -574,7 +574,7 @@ export default function Keyboard() {
         </div>
       )}
       {keymap && selectedBinding && (
-        <div className="p-2 col-start-2 row-start-2 bg-base-200">
+        <div className="p-2 row-start-3 bg-base-200 min-w-0 max-h-[40vh] overflow-auto">
           <BehaviorBindingPicker
             binding={selectedBinding}
             behaviors={Object.values(behaviors)}
@@ -587,5 +587,6 @@ export default function Keyboard() {
         </div>
       )}
     </div>
+    </>
   );
 }

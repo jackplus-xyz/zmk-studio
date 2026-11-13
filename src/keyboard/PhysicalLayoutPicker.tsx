@@ -11,6 +11,7 @@ import {
 } from "react-aria-components";
 import { PhysicalLayout, type KeyPosition } from "./PhysicalLayout";
 import { useCallback } from "react";
+import { ChevronDown } from "lucide-react";
 
 export interface PhysicalLayoutItem {
   name: string;
@@ -42,16 +43,18 @@ export const PhysicalLayoutPicker = ({
   return (
     <Select
       onSelectionChange={selectionChanged}
-      className="flex flex-col"
+      className="flex items-center"
       selectedKey={layouts[selectedPhysicalLayoutIndex].name}
     >
-      <Label className="after:content-[':'] text-sm">Layout</Label>
-      <Button className="ml-2 p-1 rounded min-w-24 text-left hover:bg-base-300">
+      <Label className="sr-only">Keyboard layout</Label>
+      <Button className="p-1 rounded flex items-center gap-1 text-[12px] text-left hover:bg-base-300">
+        <span>Layout:</span>
         <SelectValue<PhysicalLayoutItem>>
           {(v) => {
             return <span>{v.selectedItem?.name}</span>;
           }}
         </SelectValue>
+        <ChevronDown size={14} aria-hidden="true" />
       </Button>
       <Popover className="min-w-[var(--trigger-width)] max-h-4 shadow-md text-base-content rounded border-base-content bg-base-100">
         <ListBox items={layouts}>
