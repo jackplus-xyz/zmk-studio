@@ -59,11 +59,21 @@ export const BehaviorBindingLabel = ({
 
     return (
       <span
-        className="flex flex-col items-center max-w-full px-0.5"
+        className="flex flex-col items-center max-w-full"
         title={`Bluetooth: ${action}`}
       >
-        <Bluetooth size={12} aria-hidden="true" className="shrink-0" />
-        <span className="text-[10px] leading-[10px] text-center max-w-full break-words">
+        <Bluetooth size={11} aria-hidden="true" className="shrink-0" />
+        <span
+          className="leading-[9px] text-center max-w-full"
+          style={{
+            fontSize: Math.min(
+              8,
+              40 /
+                (Math.max(...action.split(" ").map((word) => word.length)) *
+                  0.62),
+            ),
+          }}
+        >
           {action}
         </span>
       </span>
@@ -86,7 +96,7 @@ export const BehaviorBindingLabel = ({
 
   if (behavior?.displayName === "Momentary Layer") {
     return (
-      <span className="text-sm max-w-full truncate px-1" title={layerName}>
+      <span className="text-[10px] max-w-full truncate px-1" title={layerName}>
         {layerName}
       </span>
     );

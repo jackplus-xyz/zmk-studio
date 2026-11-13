@@ -11,6 +11,7 @@ export type KeyPosition = PropsWithChildren<{
   id: string;
   header?: string;
   muted?: boolean;
+  hidden?: boolean;
   width: number;
   height: number;
   x: number;
@@ -120,15 +121,16 @@ export const PhysicalLayout = ({
   }, [props.zoom]);
 
   // TODO: Add a bit of padding for rotation when supported
-  let rightMost = positions
+  const visiblePositions = positions.filter((key) => !key.hidden);
+  let rightMost = visiblePositions
     .map((k) => k.x + k.width)
     .reduce((a, b) => Math.max(a, b), 0);
-  let bottomMost = positions
+  let bottomMost = visiblePositions
     .map((k) => k.y + k.height)
     .reduce((a, b) => Math.max(a, b), 0);
 
-  const positionItems = positions.map((p, idx) => (
-    <div className="absolute hover:z-10" style={scalePosition(p, oneU)}>
+  const positionItems = positions.map((p, idx) => p.hidden ? null : (
+    <div key={p.id} className="absolute hover:z-10" style={scalePosition(p, oneU)}>
       <div
         key={p.id}
         onClick={() => onPositionClicked?.(idx)}

@@ -31,6 +31,7 @@ import { LockStateContext } from "../rpc/LockStateContext";
 import { LockState } from "@zmkfirmware/zmk-studio-ts-client/core";
 import { deserializeLayoutZoom, LayoutZoom } from "./PhysicalLayout";
 import { useLocalStorageState } from "../misc/useLocalStorageState";
+import { getCompactSplitLayout } from "./compact-split-layout";
 
 type BehaviorMap = Record<number, GetBehaviorDetailsResponse>;
 
@@ -179,6 +180,9 @@ export default function Keyboard() {
   });
 
   const [selectedLayerIndex, setSelectedLayerIndex] = useState<number>(0);
+  const [hideCenterKeys, setHideCenterKeys] = useLocalStorageState(
+    "hideCenterKeys", false, { deserialize: (value) => value === "true" },
+  );
   const [selectedKeyPosition, setSelectedKeyPosition] = useState<
     number | undefined
   >(undefined);
@@ -538,8 +542,18 @@ export default function Keyboard() {
             scale={keymapScale}
             selectedLayerIndex={selectedLayerIndex}
             selectedKeyPosition={selectedKeyPosition}
+            hideCenterKeys={hideCenterKeys}
             onKeyPositionClicked={setSelectedKeyPosition}
           />
+          {getCompactSplitLayout(layouts[selectedPhysicalLayoutIndex]) && <label className="absolute top-2 left-2 h-8 px-2 rounded bg-base-200 flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm"
+              checked={hideCenterKeys}
+              onChange={(e) => setHideCenterKeys(e.target.checked)}
+            />
+            Hide 6 center keys
+          </label>}
           <select
             className="absolute top-2 right-2 h-8 rounded px-2"
             value={keymapScale}

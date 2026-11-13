@@ -30,6 +30,7 @@ export default {
 
     fontFamily: {
       keycap: ["Inter", "system-ui"],
+      mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Consolas", "monospace"],
     },
   },
   plugins: [contQueries, trac({ prefix: "rac" })],

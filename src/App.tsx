@@ -5,18 +5,22 @@ import { call_rpc } from "./rpc/logging";
 
 import type { Notification } from "@zmkfirmware/zmk-studio-ts-client/studio";
 import { ConnectionState, ConnectionContext } from "./rpc/ConnectionContext";
-import { Dispatch, useCallback, useEffect, useState } from "react";
+import { Dispatch, useCallback, useEffect, useRef, useState } from "react";
 import { ConnectModal, TransportFactory } from "./ConnectModal";
 
 import type { RpcTransport } from "@zmkfirmware/zmk-studio-ts-client/transport/index";
-import { connect as gatt_connect } from "@zmkfirmware/zmk-studio-ts-client/transport/gatt";
-import { connect as serial_connect } from "@zmkfirmware/zmk-studio-ts-client/transport/serial";
 import {
-  connect as tauri_ble_connect,
+  connectSerial as serial_connect,
+  connectBluetooth as gatt_connect,
+  connectNativeSerial as tauri_serial_connect,
+  connectNativeBluetooth as tauri_ble_connect,
+  reconnectLastKeyboard,
+  rememberConnectedKeyboard,
+} from "./rpc/remembered-keyboard";
+import {
   list_devices as ble_list_devices,
 } from "./tauri/ble";
 import {
-  connect as tauri_serial_connect,
   list_devices as serial_list_devices,
 } from "./tauri/serial";
 import Keyboard from "./keyboard/Keyboard";
@@ -141,23 +145,25 @@ async function connect(
   ]);
 
   if (!details) {
-    // TODO: Show a proper toast/alert not using `window.alert`
-    window.alert("Failed to connect to the chosen device");
-    return;
+    throw new Error("Failed to connect to the chosen device");
   }
+  if (signal.aborted) return;
 
   listen_for_notifications(conn.notification_readable, signal)
     .then(() => {
+      if (signal.aborted) return;
       setConnectedDeviceName(undefined);
       setConn({ conn: null });
     })
     .catch((_e) => {
+      if (signal.aborted) return;
       setConnectedDeviceName(undefined);
       setConn({ conn: null });
     });
 
   setConnectedDeviceName(details.name);
   setConn({ conn });
+  rememberConnectedKeyboard(transport);
 }
 
 function App() {
@@ -168,7 +174,8 @@ function App() {
   const [doIt, undo, redo, canUndo, canRedo, reset] = useUndoRedo();
   const [showAbout, setShowAbout] = useState(false);
   const [showLicenseNotice, setShowLicenseNotice] = useState(false);
-  const [connectionAbort, setConnectionAbort] = useState(new AbortController());
+  const connectionAbort = useRef(new AbortController());
+  const connectionAttempt = useRef(0);
 
   const [lockState, setLockState] = useState<LockState>(
     LockState.ZMK_STUDIO_CORE_LOCK_STATE_LOCKED
@@ -264,21 +271,48 @@ function App() {
       }
 
       await conn.conn.request_writable.close();
-      connectionAbort.abort("User disconnected");
-      setConnectionAbort(new AbortController());
+      connectionAbort.current.abort("User disconnected");
+      setConnectedDeviceName(undefined);
+      setConn({ conn: null });
     }
 
     doDisconnect();
   }, [conn]);
 
   const onConnect = useCallback(
-    (t: RpcTransport) => {
+    (t: RpcTransport, automatic = false) => {
+      connectionAttempt.current++;
+      connectionAbort.current.abort("Starting another connection");
       const ac = new AbortController();
-      setConnectionAbort(ac);
-      connect(t, setConn, setConnectedDeviceName, ac.signal);
+      connectionAbort.current = ac;
+      void connect(t, setConn, setConnectedDeviceName, ac.signal).catch((error) => {
+        const cancelled = ac.signal.aborted;
+        ac.abort(error);
+        if (!cancelled && !automatic) window.alert(error instanceof Error ? error.message : String(error));
+        else console.debug("Automatic connection unavailable", error);
+      });
     },
     [setConn, setConnectedDeviceName, setConnectedDeviceName]
   );
+
+  useEffect(() => {
+    if (connectionAttempt.current > 0) return;
+    let cancelled = false;
+    const attempt = connectionAttempt.current;
+    // Deferring skips React StrictMode's discarded initial effect.
+    queueMicrotask(async () => {
+      if (cancelled) return;
+      try {
+        const transport = await reconnectLastKeyboard();
+        if (!transport) return;
+        if (cancelled || connectionAttempt.current !== attempt) transport.abortController.abort();
+        else onConnect(transport, true);
+      } catch (error) {
+        console.debug("Last keyboard is not available", error);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [onConnect]);
 
   return (
     <ConnectionContext.Provider value={conn}>

@@ -65,11 +65,11 @@ export const LightingBindingLabel = ({
   const title = `${kind === "rgb" ? "RGB" : "Backlight"}: ${label}`;
   return (
     <span
-      className={`flex flex-col items-center leading-tight max-w-full px-0.5 ${kind === "rgb" ? "translate-y-2.5" : ""}`}
+      className="flex flex-col items-center leading-tight max-w-full"
       title={title}
     >
       <Icon size={kind === "rgb" ? 14 : 18} aria-hidden="true" />
-      <span className="text-[10px] leading-[10px] max-w-full truncate">
+      <span className="text-[8px] leading-[10px] max-w-full truncate">
         {label}
       </span>
     </span>

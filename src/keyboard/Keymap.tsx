@@ -10,6 +10,7 @@ import {
 } from "./PhysicalLayout";
 import { BehaviorBindingLabel } from "./BehaviorBindingLabel";
 import { getLightingKind } from "../behaviors/lighting";
+import { getCompactSplitLayout } from "./compact-split-layout";
 
 type BehaviorMap = Record<number, GetBehaviorDetailsResponse>;
 
@@ -19,6 +20,7 @@ export interface KeymapProps {
   behaviors: BehaviorMap;
   scale: LayoutZoom;
   selectedLayerIndex: number;
+  hideCenterKeys?: boolean;
   selectedKeyPosition: number | undefined;
   onKeyPositionClicked: (keyPosition: number) => void;
 }
@@ -29,6 +31,7 @@ export const Keymap = ({
   behaviors,
   scale,
   selectedLayerIndex,
+  hideCenterKeys = false,
   selectedKeyPosition,
   onKeyPositionClicked,
 }: KeymapProps) => {
@@ -36,11 +39,16 @@ export const Keymap = ({
     return <></>;
   }
 
-  const positions = layout.keys.map((k, i) => {
+  const compactLayout = hideCenterKeys
+    ? getCompactSplitLayout(layout)
+    : undefined;
+  const positions = (compactLayout?.keys || layout.keys).map((k, i) => {
+    const hidden = compactLayout?.hiddenPositions.has(i) || false;
     if (i >= keymap.layers[selectedLayerIndex].bindings.length) {
       return {
         id: `${keymap.layers[selectedLayerIndex].id}-${i}`,
         header: "Unknown",
+        hidden,
         x: k.x / 100.0,
         y: k.y / 100.0,
         width: k.width / 100,
@@ -50,9 +58,9 @@ export const Keymap = ({
     }
 
     let binding = keymap.layers[selectedLayerIndex].bindings[i];
-    const muted =
-      selectedLayerIndex > 0 &&
+    const transparent =
       behaviors[binding.behaviorId]?.displayName === "Transparent";
+    const muted = selectedLayerIndex > 0 && transparent;
 
     // Preview fall-through without changing the binding edited on this layer.
     if (muted) {
@@ -84,6 +92,7 @@ export const Keymap = ({
             ? ""
             : behavior?.displayName || "Unknown",
       muted,
+      hidden,
       x: k.x / 100.0,
       y: k.y / 100.0,
       width: k.width / 100,

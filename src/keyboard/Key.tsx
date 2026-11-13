@@ -19,21 +19,21 @@ const MAX_HEADER_LENGTH = 9;
 const shortNames: Record<string, BehaviorShortName> = BehaviorShortNames;
 
 const shortenHeader = (header: string | undefined) => {
-  if(typeof header === "undefined"){
+  if (typeof header === "undefined") {
     return "";
   }
   // Empty string is a valid header for behaviors where we don't want to see a header, which is falsy
   // So we use an undefined check here
-  if(typeof shortNames[header]?.short !== "undefined"){
+  if (typeof shortNames[header]?.short !== "undefined") {
     return shortNames[header].short;
-  } else if(header.length > MAX_HEADER_LENGTH){
+  } else if (header.length > MAX_HEADER_LENGTH) {
     const words = header.split(/[\s,-]+/);
     const lettersPerWord = Math.trunc(MAX_HEADER_LENGTH / words.length);
-    return words.map((word) => (word.substring(0,lettersPerWord))).join("");
+    return words.map((word) => word.substring(0, lettersPerWord)).join("");
   } else {
     return header;
   }
-}
+};
 
 export const Key = ({
   selected = false,
@@ -47,19 +47,32 @@ export const Key = ({
 }: PropsWithChildren<KeyProps>) => {
   const pixelWidth = width * oneU - 2;
   const pixelHeight = height * oneU - 2;
+  const shortHeader = shortenHeader(header);
 
   return (
     <button
-      className={`group rounded relative flex justify-center items-center cursor-pointer transition-all hover:shadow-xl hover:ring-1 hover:ring-gray-300 hover:scale-125 ${selected ? "bg-primary text-primary-content" : "bg-base-100 text-base-content"
-        }`}
+      className={`group font-mono rounded relative flex justify-center items-center cursor-pointer transition-all hover:shadow-xl hover:ring-1 hover:ring-gray-300 hover:scale-125 ${
+        selected
+          ? "bg-primary text-primary-content"
+          : "bg-base-100 text-base-content"
+      }`}
       style={{
         width: `${pixelWidth}px`,
         height: `${pixelHeight}px`,
+        fontSize: "14px",
       }}
       onClick={onClick}
     >
-      <div className={`absolute text-xs ${selected ? "text-primary-content" : "z1text-base-content"} ${muted ? "opacity-50" : "opacity-80"} top-1 text-nowrap left-1/2 font-light -translate-x-1/2 text-center`}>{shortenHeader(header)}</div>
-      {muted ? <span className="opacity-50">{children}</span> : children}
+      <div
+        className={`absolute text-xs ${selected ? "text-primary-content" : "text-base-content"} ${muted ? "opacity-50" : "opacity-80"} top-1 text-nowrap left-1/2 font-light -translate-x-1/2 text-center`}
+      >
+        {shortHeader}
+      </div>
+      <span
+        className={`absolute inset-x-0.5 bottom-1 ${shortHeader ? "top-[14px]" : "top-1"} flex items-center justify-center ${muted ? "opacity-50" : ""}`}
+      >
+        {children}
+      </span>
     </button>
   );
 };
