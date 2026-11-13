@@ -107,3 +107,67 @@ export const BaseLayer: Story = {
     await expect(canvas.getByText("Transprnt")).not.toHaveClass("opacity-50");
   },
 };
+
+export const LayerTapLabels: Story = {
+  args: {
+    selectedLayerIndex: 0,
+    behaviors: {
+      ...meta.args.behaviors,
+      4: { id: 4, displayName: "Layer-Tap", metadata: [] },
+    },
+    keymap: {
+      ...meta.args.keymap,
+      layers: [
+        {
+          id: 0,
+          name: "Base",
+          bindings: [
+            {
+              behaviorId: 4,
+              param1: 7,
+              param2: hid_usage_from_page_and_id(7, 51),
+            },
+            {
+              behaviorId: 4,
+              param1: 7,
+              param2: hid_usage_from_page_and_id(7, 30) | (0x02 << 24),
+            },
+            {
+              behaviorId: 4,
+              param1: 9,
+              param2: hid_usage_from_page_and_id(7, 4),
+            },
+            binding(2),
+          ],
+        },
+        {
+          id: 7,
+          name: "vim",
+          bindings: Array.from({ length: 4 }, () => binding(2)),
+        },
+      ],
+    },
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const keys = canvas.getAllByRole("button");
+    await expect(within(keys[0]).getByLabelText(";")).toBeInTheDocument();
+    await expect(within(keys[0]).getByText("vim")).toBeInTheDocument();
+    await expect(within(keys[1]).getByLabelText("!")).toBeInTheDocument();
+    await expect(within(keys[2]).getByText("Layer 9")).toBeInTheDocument();
+    await userEvent.click(keys[0]);
+    await expect(args.onKeyPositionClicked).toHaveBeenCalledWith(0);
+  },
+};
+
+export const InheritedLayerTap: Story = {
+  args: { ...LayerTapLabels.args, selectedLayerIndex: 1 },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const key = canvas.getAllByRole("button")[0];
+    await expect(within(key).getByLabelText(";")).toBeInTheDocument();
+    await expect(
+      within(key).getByText("vim").parentElement?.parentElement,
+    ).toHaveClass("opacity-50");
+  },
+};

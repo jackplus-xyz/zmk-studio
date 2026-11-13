@@ -8,7 +8,7 @@ import {
   LayoutZoom,
   PhysicalLayout as PhysicalLayoutComp,
 } from "./PhysicalLayout";
-import { HidUsageLabel } from "./HidUsageLabel";
+import { BehaviorBindingLabel } from "./BehaviorBindingLabel";
 
 type BehaviorMap = Record<number, GetBehaviorDetailsResponse>;
 
@@ -55,7 +55,11 @@ export const Keymap = ({
 
     // Preview fall-through without changing the binding edited on this layer.
     if (muted) {
-      for (let layerIndex = selectedLayerIndex - 1; layerIndex >= 0; layerIndex--) {
+      for (
+        let layerIndex = selectedLayerIndex - 1;
+        layerIndex >= 0;
+        layerIndex--
+      ) {
         const inheritedBinding = keymap.layers[layerIndex].bindings[i];
         if (!inheritedBinding) continue;
         binding = inheritedBinding;
@@ -63,9 +67,14 @@ export const Keymap = ({
       }
     }
 
+    const behavior = behaviors[binding.behaviorId];
+    const hasCombinedLabel = ["Layer-Tap", "Bluetooth"].includes(
+      behavior?.displayName || "",
+    );
+
     return {
       id: `${keymap.layers[selectedLayerIndex].id}-${i}`,
-      header: behaviors[binding.behaviorId]?.displayName || "Unknown",
+      header: hasCombinedLabel ? "" : behavior?.displayName || "Unknown",
       muted,
       x: k.x / 100.0,
       y: k.y / 100.0,
@@ -75,7 +84,11 @@ export const Keymap = ({
       rx: (k.rx || 0) / 100.0,
       ry: (k.ry || 0) / 100.0,
       children: (
-        <HidUsageLabel hid_usage={binding.param1} />
+        <BehaviorBindingLabel
+          binding={binding}
+          behavior={behavior}
+          layers={keymap.layers}
+        />
       ),
     };
   });
