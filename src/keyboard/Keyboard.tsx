@@ -5,6 +5,8 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  forwardRef,
+  useImperativeHandle,
 } from "react";
 
 import { Request } from "@zmkfirmware/zmk-studio-ts-client";
@@ -35,6 +37,14 @@ import { getCompactSplitLayout } from "./compact-split-layout";
 import { createPortal } from "react-dom";
 
 type BehaviorMap = Record<number, GetBehaviorDetailsResponse>;
+
+export interface KeyboardHandle {
+  exportScreenshot: (keyboardName: string) => Promise<void>;
+}
+
+interface KeyboardProps {
+  layoutPickerHost?: HTMLElement | null;
+}
 
 function useBehaviors(): BehaviorMap {
   let connection = useContext(ConnectionContext);
@@ -160,7 +170,7 @@ function useLayouts(): [
   ];
 }
 
-export default function Keyboard({ layoutPickerHost }: { layoutPickerHost?: HTMLElement | null }) {
+export default forwardRef<KeyboardHandle, KeyboardProps>(function Keyboard({ layoutPickerHost }, ref) {
   const [
     layouts,
     _setLayouts,
@@ -188,6 +198,17 @@ export default function Keyboard({ layoutPickerHost }: { layoutPickerHost?: HTML
     number | undefined
   >(undefined);
   const behaviors = useBehaviors();
+
+  useImperativeHandle(ref, () => ({
+    async exportScreenshot(keyboardName) {
+      const layout = layouts?.[selectedPhysicalLayoutIndex];
+      if (!keymap?.layers.length || !layout || !Object.keys(behaviors).length) {
+        throw new Error("The keyboard layout has not finished loading.");
+      }
+      const { downloadLayoutScreenshot } = await import("./layout-screenshot");
+      await downloadLayoutScreenshot({ keymap, layout, behaviors, hideCenterKeys, keyboardName });
+    },
+  }), [keymap, layouts, selectedPhysicalLayoutIndex, behaviors, hideCenterKeys]);
 
   const conn = useContext(ConnectionContext);
   const undoRedo = useContext(UndoRedoContext);
@@ -589,4 +610,4 @@ export default function Keyboard({ layoutPickerHost }: { layoutPickerHost?: HTML
     </div>
     </>
   );
-}
+});

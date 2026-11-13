@@ -23,7 +23,7 @@ import {
 import {
   list_devices as serial_list_devices,
 } from "./tauri/serial";
-import Keyboard from "./keyboard/Keyboard";
+import Keyboard, { type KeyboardHandle } from "./keyboard/Keyboard";
 import { UndoRedoContext, useUndoRedo } from "./undoRedo";
 import { usePub, useSub } from "./usePubSub";
 import { LockState } from "@zmkfirmware/zmk-studio-ts-client/core";
@@ -172,6 +172,9 @@ function App() {
     string | undefined
   >(undefined);
   const [layoutPickerHost, setLayoutPickerHost] = useState<HTMLDivElement | null>(null);
+  const keyboardRef = useRef<KeyboardHandle>(null);
+  const saving = useRef(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const [doIt, undo, redo, canUndo, canRedo, reset] = useUndoRedo();
   const [showAbout, setShowAbout] = useState(false);
   const [showLicenseNotice, setShowLicenseNotice] = useState(false);
@@ -210,20 +213,50 @@ function App() {
     updateLockState();
   }, [conn, setLockState]);
 
+  const generateImage = useCallback(async () => {
+    if (generatingImage) return;
+    setGeneratingImage(true);
+    try {
+      if (!keyboardRef.current) throw new Error("The keyboard layout is unavailable.");
+      await keyboardRef.current.exportScreenshot(connectedDeviceName || "Keyboard");
+    } catch (error) {
+      console.error("Layout screenshot failed", error);
+      window.alert(`Could not generate the layout image. ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setGeneratingImage(false);
+    }
+  }, [connectedDeviceName, generatingImage]);
+
   const save = useCallback(() => {
     async function doSave() {
-      if (!conn.conn) {
+      if (!conn.conn || saving.current) {
         return;
       }
-
-      let resp = await call_rpc(conn.conn, { keymap: { saveChanges: true } });
-      if (!resp.keymap?.saveChanges || resp.keymap?.saveChanges.err) {
-        console.error("Failed to save changes", resp.keymap?.saveChanges);
+      saving.current = true;
+      // This closure captures the layout shown when Save was clicked.
+      const exportScreenshot = keyboardRef.current?.exportScreenshot;
+      try {
+        const resp = await call_rpc(conn.conn, { keymap: { saveChanges: true } });
+        if (resp.keymap?.saveChanges?.ok !== true) {
+          console.error("Failed to save changes", resp.keymap?.saveChanges);
+          return;
+        }
+        try {
+          if (!exportScreenshot) throw new Error("The keyboard layout is unavailable.");
+          await exportScreenshot(connectedDeviceName || "Keyboard");
+        } catch (error) {
+          console.error("Layout screenshot failed", error);
+          window.alert(`The keyboard was saved, but its screenshot could not be generated. ${error instanceof Error ? error.message : String(error)}`);
+        }
+      } catch (error) {
+        console.error("Failed to save changes", error);
+      } finally {
+        saving.current = false;
       }
     }
 
     doSave();
-  }, [conn]);
+  }, [conn, connectedDeviceName]);
 
   const discard = useCallback(() => {
     async function doDiscard() {
@@ -339,11 +372,13 @@ function App() {
               onUndo={undo}
               onRedo={redo}
               onSave={save}
+              onGenerateImage={generateImage}
+              generatingImage={generatingImage}
               onDiscard={discard}
               onDisconnect={disconnect}
               onResetSettings={resetSettings}
             />
-            <Keyboard layoutPickerHost={layoutPickerHost} />
+            <Keyboard ref={keyboardRef} layoutPickerHost={layoutPickerHost} />
             <AppFooter
               onShowAbout={() => setShowAbout(true)}
               onShowLicenseNotice={() => setShowLicenseNotice(true)}

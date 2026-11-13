@@ -12,7 +12,7 @@ import { useModalRef } from "./misc/useModalRef";
 import { LockStateContext } from "./rpc/LockStateContext";
 import { LockState } from "@zmkfirmware/zmk-studio-ts-client/core";
 import { ConnectionContext } from "./rpc/ConnectionContext";
-import { ChevronDown, Undo2, Redo2, Save, Trash2 } from "lucide-react";
+import { ChevronDown, Undo2, Redo2, Save, Trash2, ImageDown } from "lucide-react";
 import { Tooltip } from "./misc/Tooltip";
 import { GenericModal } from "./GenericModal";
 
@@ -20,6 +20,8 @@ export interface AppHeaderProps {
   connectedDeviceLabel?: string;
   layoutControlsRef?: Ref<HTMLDivElement>;
   onSave?: () => void | Promise<void>;
+  onGenerateImage?: () => void | Promise<void>;
+  generatingImage?: boolean;
   onDiscard?: () => void | Promise<void>;
   onUndo?: () => Promise<void>;
   onRedo?: () => Promise<void>;
@@ -37,6 +39,8 @@ export const AppHeader = ({
   onRedo,
   onUndo,
   onSave,
+  onGenerateImage,
+  generatingImage = false,
   onDiscard,
   onDisconnect,
   onResetSettings,
@@ -151,6 +155,15 @@ export const AppHeader = ({
             </Button>
           </Tooltip>
         )}
+        <Tooltip label="Generate layout image">
+          <Button
+            className="flex items-center justify-center p-1.5 rounded enabled:hover:bg-base-300 disabled:opacity-50"
+            isDisabled={!connectedDeviceLabel || generatingImage}
+            onPress={onGenerateImage}
+          >
+            <ImageDown className="inline-block w-4 mx-1" aria-label="Generate layout image" />
+          </Button>
+        </Tooltip>
         <Tooltip label="Save">
           <Button
             className="flex items-center justify-center p-1.5 rounded enabled:hover:bg-base-300 disabled:opacity-50"
