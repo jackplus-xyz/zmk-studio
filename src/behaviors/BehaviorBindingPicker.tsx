@@ -7,7 +7,7 @@ import {
 import { BehaviorBinding } from "@zmkfirmware/zmk-studio-ts-client/keymap";
 import { BehaviorParametersPicker } from "./BehaviorParametersPicker";
 import { validateValue } from "./parameters";
-import { behaviorDescriptions } from "./behavior-descriptions";
+import { getBehaviorDescription } from "./behavior-descriptions";
 
 export interface BehaviorBindingPickerProps {
   binding: BehaviorBinding;
@@ -57,7 +57,7 @@ export const BehaviorBindingPicker = ({
 
   const selectedBehavior = behaviors.find((b) => b.id === behaviorId);
   const description =
-    selectedBehavior && behaviorDescriptions[selectedBehavior.displayName];
+    selectedBehavior && getBehaviorDescription(selectedBehavior.displayName);
 
   const sortedBehaviors = useMemo(
     () => behaviors.sort((a, b) => a.displayName.localeCompare(b.displayName)),

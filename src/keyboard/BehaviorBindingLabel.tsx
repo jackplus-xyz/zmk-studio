@@ -2,6 +2,8 @@ import type { GetBehaviorDetailsResponse } from "@zmkfirmware/zmk-studio-ts-clie
 import type { BehaviorBinding } from "@zmkfirmware/zmk-studio-ts-client/keymap";
 import { Bluetooth } from "lucide-react";
 import { HidUsageLabel } from "./HidUsageLabel";
+import { getLightingKind } from "../behaviors/lighting";
+import { LightingBindingLabel } from "./LightingBindingLabel";
 
 interface BehaviorBindingLabelProps {
   binding: BehaviorBinding;
@@ -23,6 +25,30 @@ export const BehaviorBindingLabel = ({
   behavior,
   layers,
 }: BehaviorBindingLabelProps) => {
+  const lightingKind = getLightingKind(behavior?.displayName || "");
+  if (lightingKind) {
+    return (
+      <LightingBindingLabel
+        kind={lightingKind}
+        command={binding.param1}
+        value={binding.param2}
+      />
+    );
+  }
+
+  if (behavior?.displayName === "Mod-Tap") {
+    return (
+      <span className="flex flex-col items-center leading-tight max-w-full px-1">
+        <span title="Tap">
+          <HidUsageLabel hid_usage={binding.param2} />
+        </span>
+        <span className="text-xs" title="Hold">
+          <HidUsageLabel hid_usage={binding.param1} />
+        </span>
+      </span>
+    );
+  }
+
   if (behavior?.displayName === "Bluetooth") {
     const action =
       binding.param1 === 3

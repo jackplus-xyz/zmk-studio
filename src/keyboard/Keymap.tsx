@@ -9,6 +9,7 @@ import {
   PhysicalLayout as PhysicalLayoutComp,
 } from "./PhysicalLayout";
 import { BehaviorBindingLabel } from "./BehaviorBindingLabel";
+import { getLightingKind } from "../behaviors/lighting";
 
 type BehaviorMap = Record<number, GetBehaviorDetailsResponse>;
 
@@ -68,13 +69,20 @@ export const Keymap = ({
     }
 
     const behavior = behaviors[binding.behaviorId];
-    const hasCombinedLabel = ["Layer-Tap", "Bluetooth"].includes(
-      behavior?.displayName || "",
-    );
+    const lightingKind = getLightingKind(behavior?.displayName || "");
+    const hasCombinedLabel =
+      ["Layer-Tap", "Mod-Tap", "Bluetooth"].includes(
+        behavior?.displayName || "",
+      ) || lightingKind === "backlight";
 
     return {
       id: `${keymap.layers[selectedLayerIndex].id}-${i}`,
-      header: hasCombinedLabel ? "" : behavior?.displayName || "Unknown",
+      header:
+        lightingKind === "rgb"
+          ? "Underglow"
+          : hasCombinedLabel
+            ? ""
+            : behavior?.displayName || "Unknown",
       muted,
       x: k.x / 100.0,
       y: k.y / 100.0,
