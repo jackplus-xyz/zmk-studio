@@ -5,6 +5,8 @@ import { validateValue } from "./parameters";
 export interface BehaviorParametersPickerProps {
   param1?: number;
   param2?: number;
+  param1Label?: string;
+  param2Label?: string;
   metadata: BehaviorBindingParametersSet[];
   layers: { id: number; name: string }[];
   onParam1Changed: (value?: number) => void;
@@ -14,6 +16,8 @@ export interface BehaviorParametersPickerProps {
 export const BehaviorParametersPicker = ({
   param1,
   param2,
+  param1Label,
+  param2Label,
   metadata,
   layers,
   onParam1Changed,
@@ -23,6 +27,7 @@ export const BehaviorParametersPicker = ({
     return (
       <div>
         <ParameterValuePicker
+          label={param1Label}
           values={metadata.flatMap((m) => m.param1)}
           onValueChanged={onParam1Changed}
           layers={layers}
@@ -34,12 +39,13 @@ export const BehaviorParametersPicker = ({
       validateValue(
         layers.map((l) => l.id),
         param1,
-        s.param1
-      )
+        s.param1,
+      ),
     );
     return (
       <>
         <ParameterValuePicker
+          label={param1Label}
           values={metadata.flatMap((m) => m.param1)}
           value={param1}
           layers={layers}
@@ -47,6 +53,7 @@ export const BehaviorParametersPicker = ({
         />
         {(set?.param2?.length || 0) > 0 && (
           <ParameterValuePicker
+            label={param2Label}
             values={set!.param2}
             value={param2}
             layers={layers}

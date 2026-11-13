@@ -1,7 +1,5 @@
-import {
-  hid_usage_get_labels,
-  hid_usage_page_and_id_from_usage,
-} from "../hid-usages";
+import { hid_usage_page_and_id_from_usage } from "../hid-usages";
+import { getHidUsageLabels } from "./hid-usage-labels";
 import {
   Sun,
   SunDim,
@@ -37,30 +35,17 @@ const mediaIcons: Record<number, { icon: LucideIcon; label: string }> = {
 
 export interface HidUsageLabelProps {
   hid_usage: number;
+  withModifiers?: boolean;
 }
 
-function remove_prefix(s?: string) {
-  return s?.replace(/^Keyboard /, "");
-}
-
-export const HidUsageLabel = ({ hid_usage }: HidUsageLabelProps) => {
+export const HidUsageLabel = ({
+  hid_usage,
+  withModifiers = false,
+}: HidUsageLabelProps) => {
   const [usagePage, id] = hid_usage_page_and_id_from_usage(hid_usage);
 
-  const modifiers = hid_usage >>> 24;
   const page = usagePage & 0xff;
-
-  // Number-row symbols follow the same US layout as the HID label table.
-  const shiftedNumber =
-    page === 7 &&
-    (modifiers & 0x22) !== 0 &&
-    (modifiers & ~0x22) === 0 &&
-    id >= 0x1e &&
-    id <= 0x27
-      ? "!@#$%^&*()"[id - 0x1e]
-      : undefined;
-  const labels = shiftedNumber
-    ? { short: shiftedNumber }
-    : hid_usage_get_labels(page, id);
+  const labels = getHidUsageLabels(hid_usage, withModifiers);
 
   const media = page === 12 ? mediaIcons[id] : undefined;
   if (media) {
@@ -68,10 +53,11 @@ export const HidUsageLabel = ({ hid_usage }: HidUsageLabelProps) => {
     return (
       <span
         role="img"
-        aria-label={media.label}
-        title={media.label}
+        aria-label={labels.prefix + media.label}
+        title={labels.prefix + media.label}
         className="inline-flex"
       >
+        {labels.prefix}
         <Icon size={20} aria-hidden="true" />
       </span>
     );
@@ -80,11 +66,17 @@ export const HidUsageLabel = ({ hid_usage }: HidUsageLabelProps) => {
   return (
     <span
       className="@[10em]:before:content-[attr(data-long-content)] @[6em]:before:content-[attr(data-med-content)] before:content-[attr(aria-label)]"
-      aria-label={remove_prefix(labels.short)}
-      data-med-content={remove_prefix(labels.med || labels.short)}
-      data-long-content={remove_prefix(
-        labels.long || labels.med || labels.short,
-      )}
+      aria-label={labels.short}
+      data-med-content={labels.med}
+      data-long-content={labels.long}
+      title={withModifiers ? labels.long : undefined}
+      style={
+        withModifiers
+          ? {
+              fontSize: `min(1em, ${40 / (Math.max(1, labels.short?.length || 0) * 0.62)}px)`,
+            }
+          : undefined
+      }
     />
   );
 };

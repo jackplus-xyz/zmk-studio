@@ -3,6 +3,7 @@ import { HidUsagePicker } from "./HidUsagePicker";
 
 export interface ParameterValuePickerProps {
   value?: number;
+  label?: string;
   values: BehaviorParameterValueDescription[];
   layers: { id: number; name: string }[];
   onValueChanged: (value?: number) => void;
@@ -10,6 +11,7 @@ export interface ParameterValuePickerProps {
 
 export const ParameterValuePicker = ({
   value,
+  label,
   values,
   layers,
   onValueChanged,
@@ -34,7 +36,7 @@ export const ParameterValuePicker = ({
     if (values[0].range) {
       return (
         <div>
-          <label>{values[0].name}: </label>
+          <label>{label || values[0].name}: </label>
           <input
             type="number"
             min={values[0].range.min}
@@ -48,7 +50,7 @@ export const ParameterValuePicker = ({
       return (
         <HidUsagePicker
           onValueChanged={onValueChanged}
-          label={values[0].name}
+          label={label || values[0].name}
           value={value}
           usagePages={[
             { id: 7, min: 4, max: values[0].hidUsage.keyboardMax },
@@ -59,7 +61,7 @@ export const ParameterValuePicker = ({
     } else if (values[0].layerId) {
       return (
         <div>
-          <label>{values[0].name}: </label>
+          <label>{label || values[0].name}: </label>
           <select
             value={value}
             className="h-8 rounded"

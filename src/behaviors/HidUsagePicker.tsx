@@ -17,7 +17,7 @@ import {
   hid_usage_from_page_and_id,
   hid_usage_page_get_ids,
 } from "../hid-usages";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useId } from "react";
 import { ChevronDown } from "lucide-react";
 
 export interface HidUsagePage {
@@ -115,6 +115,7 @@ export const HidUsagePicker = ({
   usagePages,
   onValueChanged,
 }: HidUsagePickerProps) => {
+  const labelId = useId();
   const mods = useMemo(() => {
     let flags = value ? value >> 24 : 0;
 
@@ -149,11 +150,11 @@ export const HidUsagePicker = ({
 
   return (
     <div className="flex gap-2 relative">
-      {label && <Label id="hid-usage-picker">{label}:</Label>}
+      {label && <Label id={labelId}>{label}:</Label>}
       <ComboBox
         selectedKey={value ? mask_mods(value) : null}
         onSelectionChange={selectionChanged}
-        aria-labelledby="hid-usage-picker"
+        aria-labelledby={label ? labelId : undefined}
       >
         <div className="flex">
           <Input className="p-1 rounded-l" />

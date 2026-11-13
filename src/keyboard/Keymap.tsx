@@ -58,6 +58,28 @@ export const Keymap = ({
     }
 
     let binding = keymap.layers[selectedLayerIndex].bindings[i];
+    const layerActivator =
+      selectedLayerIndex > 0
+        ? keymap.layers
+            .slice(0, selectedLayerIndex)
+            .reverse()
+            .map((layer) => layer.bindings[i])
+            .find(
+              (candidate) =>
+                candidate &&
+                behaviors[candidate.behaviorId]?.displayName !== "Transparent",
+            )
+        : undefined;
+    const active =
+      !!layerActivator &&
+      layerActivator.param1 === keymap.layers[selectedLayerIndex].id &&
+      [
+        "Layer-Tap",
+        "Momentary Layer",
+        "Sticky Layer",
+        "Toggle Layer",
+        "To Layer",
+      ].includes(behaviors[layerActivator.behaviorId]?.displayName || "");
     const transparent =
       behaviors[binding.behaviorId]?.displayName === "Transparent";
     const muted = selectedLayerIndex > 0 && transparent;
@@ -75,6 +97,8 @@ export const Keymap = ({
         if (behaviors[binding.behaviorId]?.displayName !== "Transparent") break;
       }
     }
+    // Show the activation action in the preview while edits still target this layer.
+    if (active && layerActivator) binding = layerActivator;
 
     const behavior = behaviors[binding.behaviorId];
     const lightingKind = getLightingKind(behavior?.displayName || "");
@@ -91,7 +115,8 @@ export const Keymap = ({
           : hasCombinedLabel
             ? ""
             : behavior?.displayName || "Unknown",
-      muted,
+      muted: muted && !active,
+      active,
       hidden,
       x: k.x / 100.0,
       y: k.y / 100.0,
@@ -105,6 +130,7 @@ export const Keymap = ({
           binding={binding}
           behavior={behavior}
           layers={keymap.layers}
+          active={active}
         />
       ),
     };

@@ -4,6 +4,7 @@ import BehaviorShortNames from "./behavior-short-names.json";
 interface KeyProps {
   selected?: boolean;
   muted?: boolean;
+  active?: boolean;
   width: number;
   height: number;
   oneU: number;
@@ -38,6 +39,7 @@ const shortenHeader = (header: string | undefined) => {
 export const Key = ({
   selected = false,
   muted = false,
+  active = false,
   width,
   height,
   oneU,
@@ -54,17 +56,21 @@ export const Key = ({
       className={`group font-mono rounded relative flex justify-center items-center cursor-pointer transition-all hover:shadow-xl hover:ring-1 hover:ring-gray-300 hover:scale-125 ${
         selected
           ? "bg-primary text-primary-content"
-          : "bg-base-100 text-base-content"
-      }`}
+          : active
+            ? "bg-gray-800 text-gray-100"
+            : "bg-base-100 text-base-content"
+      } ${active ? `ring-2 ${selected ? "ring-primary" : "ring-gray-500"} shadow-inner translate-y-px` : ""}`}
       style={{
         width: `${pixelWidth}px`,
         height: `${pixelHeight}px`,
         fontSize: "14px",
       }}
       onClick={onClick}
+      aria-pressed={active || selected}
+      title={active ? "Activates the selected layer (preview)" : undefined}
     >
       <div
-        className={`absolute text-xs ${selected ? "text-primary-content" : "text-base-content"} ${muted ? "opacity-50" : "opacity-80"} top-1 text-nowrap left-1/2 font-light -translate-x-1/2 text-center`}
+        className={`absolute text-xs text-inherit ${muted ? "opacity-50" : "opacity-80"} top-1 text-nowrap left-1/2 font-light -translate-x-1/2 text-center`}
       >
         {shortHeader}
       </div>

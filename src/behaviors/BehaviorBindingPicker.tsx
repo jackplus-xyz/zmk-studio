@@ -131,6 +131,8 @@ export const BehaviorBindingPicker = ({
       {metadata && (
         <BehaviorParametersPicker
           metadata={metadata}
+          param1Label={selectedBehavior?.displayName === "Mod-Tap" ? "Key (held)" : undefined}
+          param2Label={selectedBehavior?.displayName === "Mod-Tap" ? "Key (tapped)" : undefined}
           param1={param1}
           param2={param2}
           layers={layers}

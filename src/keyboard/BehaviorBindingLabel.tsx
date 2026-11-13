@@ -9,6 +9,7 @@ interface BehaviorBindingLabelProps {
   binding: BehaviorBinding;
   behavior?: GetBehaviorDetailsResponse;
   layers: { id: number; name: string }[];
+  active?: boolean;
 }
 
 // Commands and zero-based profile numbers match dt-bindings/zmk/bt.h.
@@ -24,7 +25,25 @@ export const BehaviorBindingLabel = ({
   binding,
   behavior,
   layers,
+  active = false,
 }: BehaviorBindingLabelProps) => {
+  if (behavior?.displayName === "Output Selection") {
+    const outputs: Record<number, string> = {
+      0: "Toggle",
+      1: "USB",
+      2: "BLE",
+      3: "None",
+    };
+    return (
+      <span
+        className="text-[10px]"
+        title={`Output: ${outputs[binding.param1] || `Command ${binding.param1}`}`}
+      >
+        {outputs[binding.param1] || `Cmd ${binding.param1}`}
+      </span>
+    );
+  }
+
   const lightingKind = getLightingKind(behavior?.displayName || "");
   if (lightingKind) {
     return (
@@ -40,10 +59,10 @@ export const BehaviorBindingLabel = ({
     return (
       <span className="flex flex-col items-center leading-tight max-w-full px-1">
         <span title="Tap">
-          <HidUsageLabel hid_usage={binding.param2} />
+          <HidUsageLabel hid_usage={binding.param2} withModifiers />
         </span>
         <span className="text-xs" title="Hold">
-          <HidUsageLabel hid_usage={binding.param1} />
+          <HidUsageLabel hid_usage={binding.param1} withModifiers />
         </span>
       </span>
     );
@@ -84,6 +103,14 @@ export const BehaviorBindingLabel = ({
     layers.find((l) => l.id === binding.param1)?.name ||
     `Layer ${binding.param1}`;
   if (behavior?.displayName === "Layer-Tap") {
+    if (active) {
+      return (
+        <span className="flex flex-col items-center max-w-full">
+          <span className="text-[10px] max-w-full truncate">{layerName}</span>
+          <span className="text-xs">Held</span>
+        </span>
+      );
+    }
     return (
       <span className="flex flex-col items-center leading-tight max-w-full px-1">
         <HidUsageLabel hid_usage={binding.param2} />
